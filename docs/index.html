@@ -735,6 +735,11 @@ ul.story-list li em{color:var(--ember);font-style:italic;}
 .home-link:hover .hl-back{color:var(--ember)}
 body{padding-top:46px}
 :focus-visible{outline:2px solid #38bdf8;outline-offset:3px}
+
+/* Screenshots reuse the page's existing figure component; only the image
+   itself needs sizing. Light captures sit framed on the surface card, so a
+   Power BI screenshot reads as a document rather than a glare panel. */
+.fig-frame img{display:block;width:100%;height:auto}
 </style>
 </head>
 <body>
@@ -1307,7 +1312,14 @@ OUT  = Path(<span class="str">"data/raw"</span>); OUT.mkdir(parents=<span class=
       </div>
     </div>
 
-    <h3 class="sub-h">Average R² <span class="it">across all targets.</span></h3>
+    
+      <div class="fig-block">
+        <div class="fig-frame">
+          <img src="assets/r2-heatmap.png" width="1847" height="1297" alt="Heatmap of R-squared for four models across five water-quality targets. Green cells mark scores above zero, red cells below zero. XGBoost on Water Temp is outlined in gold at plus 0.785, the highest value in the grid." loading="lazy" decoding="async">
+        </div>
+        <div class="fig-cap"><span>Fig. 05 — R² across all 20 model × target combinations. Green above zero, red below; XGBoost × Water Temp leads at +0.785.</span><span>matplotlib · 4 × 5</span></div>
+      </div>
+<h3 class="sub-h">Average R² <span class="it">across all targets.</span></h3>
 
     <div class="fig-block">
       <div class="fig-frame">
@@ -1390,7 +1402,21 @@ OUT  = Path(<span class="str">"data/raw"</span>); OUT.mkdir(parents=<span class=
   <!-- ═══════════════════════════════════════════ -->
   <!-- 7. DISCUSSION -->
   <section id="discussion">
-    <h2 class="section-h" data-n="§ 07">Discussion.</h2>
+    
+      <div class="fig-block">
+        <div class="fig-frame">
+          <img src="assets/dashboard-detail.webp" width="708" height="401" alt="Power BI dashboard page with target slicers, headline cards reading 27M train rows, 6M test rows and 0.79 best R-squared, a bar chart of R-squared by target and model, average R-squared by model, and train and test row counts per target." loading="lazy" decoding="async">
+        </div>
+        <div class="fig-cap"><span>Fig. 06 — WQ_ML_Benchmark, detail page. Row counts are cumulative across all 20 runs: the per-target split (1.6M + 1.6M + 1.4M + 1.0M + 1.0M) × four models gives the 27M / 6M headline.</span><span>Power BI · .pbix</span></div>
+      </div>
+
+      <div class="fig-block">
+        <div class="fig-frame">
+          <img src="assets/dashboard-summary.webp" width="709" height="398" alt="Power BI dashboard page titled Water Quality ML model Benchmark, showing RMSE by model and MAE by model bar charts above a table of R-squared, RMSE and MAE for every model and target combination." loading="lazy" decoding="async">
+        </div>
+        <div class="fig-cap"><span>Fig. 07 — WQ_ML_Benchmark, summary page. RMSE and MAE by model, with the full R² / RMSE / MAE matrix beneath.</span><span>Power BI · .pbix</span></div>
+      </div>
+<h2 class="section-h" data-n="§ 07">Discussion.</h2>
 
     <h3 class="sub-h">Why <span class="it">XGBoost wins.</span></h3>
     <p>
