@@ -1,220 +1,78 @@
-# ML Model Benchmark — Water Quality Prediction
+# Water Quality Prediction — Machine Learning Benchmark
 
-> Final-year BSc dissertation (KV6013, Northumbria University). A four-model benchmark on **8.3 million** UK Environment Agency water-quality samples, testing which ML algorithm best forecasts five core parameters under a strict chronological train/test protocol.
+Final-year Computer Science dissertation (KV6013, Northumbria University). A controlled comparison of Ridge Regression, Random Forest, MLP and XGBoost across five water-quality targets.
 
-[![Status](https://img.shields.io/badge/status-completed-success)]()
-[![Best R²](https://img.shields.io/badge/best%20R²-+0.785-e64d2e)]()
-[![Samples](https://img.shields.io/badge/samples-8.3M-blue)]()
-[![Python](https://img.shields.io/badge/python-3.10+-blue)]()
-[![License](https://img.shields.io/badge/license-MIT-lightgrey)]()
+[Explore the project](https://nawafbalmutairi.github.io/ml-water-quality-benchmark/)
 
-🔗 **[Read the full dissertation walkthrough →](https://nawafbalmutairi.github.io/ml-benchmarking/)**
+## What I built
 
----
+I prepared Environment Agency monitoring data in Python and benchmarked four regression models across five water-quality targets, using IBM SPSS Modeler in the modelling workflow and Power BI to present the results.
 
-## TL;DR
+The source is Environment Agency monitoring data from 2000–2025 across 14 areas in England. Approximately 6.7 million training samples and 1.6 million testing samples are summed across five target datasets. Each target has its own valid subset; these totals are not distinct sampling events and are not multiplied by the number of models.
 
-| | |
-|---|---|
-| **Question** | Which ML algorithm best forecasts UK water quality from historical signal alone? |
-| **Data** | 8.3M samples · 5 parameters · 14 EA regions · 26 years (2000–2025) |
-| **Models** | Ridge · Random Forest · MLP · XGBoost |
-| **Winner** | **XGBoost** — wins 4/5 targets · R² = **+0.785** on Water Temperature |
-| **Lesson** | BOD is structurally unpredictable from lag features alone; the problem is feature engineering, not algorithm choice. |
+## Why this benchmark
 
----
+Which model works best depends on what it is predicting. This study holds the inputs, chronological split and evaluation metrics consistent within each target to compare four model families fairly.
 
-## Results · The Headline
+## Workflow
 
-**XGBoost was the only model × target combination to exceed R² = +0.7 across all 20 pairs tested.** Its Water Temperature result of **+0.785** is the dissertation's single best outcome.
+1. **Environment Agency records.** Monitoring records from 2000–2025 across 14 Environment Agency areas in England, organised by area and year.
 
-### R² heatmap (all 20 combinations)
+2. **Manual rename & review.** I renamed the downloaded files manually and spotted my own naming mistake: the Thames 2000 and 2001 files were swapped. I corrected them before constructing the final dataset.
 
-| Target | Ridge | Random Forest | MLP | **XGBoost** |
-|---|---:|---:|---:|---:|
-| Nitrate as N | −0.01 | −0.32 | −1.42 | **+0.02** |
-| BOD: 5 Day ATU | −0.01 | −3.49 | −0.07 | −0.27 |
-| Water Temperature | +0.11 | +0.73 | −3.61 | **+0.79** ★ |
-| Dissolved O₂ | +0.36 | +0.18 | +0.46 | **+0.50** |
-| pH | −0.01 | +0.16 | +0.08 | **+0.23** |
-| **Average R²** | **+0.09** | **−0.55** | **−0.91** | **+0.25** ★ |
+3. **Handle censored measurements.** Retain the five selected parameters. Treat readings marked < or > as missing, because detection limits are not exact measurements.
 
-XGBoost wins 4 of 5 individual targets. BOD is the only parameter where every model fails — Ridge "wins" with R² = −0.007, which is to say it predicts marginally better than always returning the mean.
+4. **Long to wide.** Reshape individual measurements into columns for each sampling point and date. Each target uses its own valid subset, so sample counts differ between targets.
 
----
+5. **Water measurements + calendar features.** Predict one parameter using the other four selected water-quality measurements plus year, month and day extracted from the observation date.
 
-## Why this benchmark exists
+6. **Evaluate on later observations.** Train on 2000–2017 and test on 2018–2025. Approximately 6.7 million training and 1.6 million testing samples across the five target datasets, not multiplied by four models.
 
-Most water-quality ML papers optimize one model for one target. This dissertation does the opposite: **same data, same preprocessing, same evaluation protocol, four models, five parameters** — a like-for-like comparison the literature doesn't otherwise provide.
+7. **Four models × five targets.** Benchmark Ridge, Random Forest, MLP and XGBoost within the IBM SPSS Modeler workflow. Python, Pandas and NumPy support preparation; scikit-learn and XGBoost support modelling and evaluation.
 
-The three research questions answered:
+8. **Metrics, plots and Power BI.** Compare R², RMSE and MAE for every combination. Present the results in the report and an interactive Power BI dashboard. XGBoost leads on R² for four targets; Ridge leads on BOD, although all BOD R² scores are negative.
 
-1. **RQ1.** Which of the four models is most accurate per parameter? → **XGBoost wins 4 of 5.**
-2. **RQ2.** Are some parameters structurally easier to predict? → **Yes; Water Temperature (strong seasonal signal) vs BOD (driven by acute biological events).**
-3. **RQ3.** Can the pipeline survive upstream data-source changes? → **Yes; the rebuild after the December 2025 EA API deprecation became a system-design pattern, not a setback.**
+## Results
 
----
+XGBoost has the highest R² on four targets. Water temperature is strongest: XGBoost 0.785 and Random Forest 0.729 both exceed 0.7. All BOD R² scores are negative; Ridge is best on BOD R², while XGBoost is best on BOD MAE. These findings apply to this dataset and setup, not every water-quality problem.
 
-## Data pipeline (6 stages)
+| Target | Model | R² | RMSE | MAE |
+|---|---|---:|---:|---:|
+| Nitrate as N | Ridge | -0.007 | 14.279 | 4.709 |
+| Nitrate as N | Random Forest | -0.322 | 16.357 | 5.031 |
+| Nitrate as N | MLP | -1.420 | 22.130 | 7.905 |
+| Nitrate as N | XGBoost | 0.021 | 14.075 | 4.344 |
+| BOD: 5 Day ATU | Ridge | -0.007 | 369.339 | 95.691 |
+| BOD: 5 Day ATU | Random Forest | -3.487 | 779.768 | 83.334 |
+| BOD: 5 Day ATU | MLP | -0.065 | 379.928 | 89.534 |
+| BOD: 5 Day ATU | XGBoost | -0.269 | 414.710 | 75.232 |
+| Water Temperature | Ridge | 0.106 | 4.315 | 3.441 |
+| Water Temperature | Random Forest | 0.729 | 2.377 | 1.815 |
+| Water Temperature | MLP | -3.611 | 9.799 | 8.161 |
+| Water Temperature | XGBoost | 0.785 | 2.116 | 1.607 |
+| Dissolved Oxygen | Ridge | 0.357 | 1.861 | 1.334 |
+| Dissolved Oxygen | Random Forest | 0.179 | 2.103 | 1.214 |
+| Dissolved Oxygen | MLP | 0.460 | 1.706 | 1.211 |
+| Dissolved Oxygen | XGBoost | 0.503 | 1.636 | 1.129 |
+| pH | Ridge | -0.012 | 0.418 | 0.294 |
+| pH | Random Forest | 0.163 | 0.380 | 0.261 |
+| pH | MLP | 0.083 | 0.398 | 0.281 |
+| pH | XGBoost | 0.225 | 0.366 | 0.247 |
 
-```
-EA API (deprecated)  →  Colab ingest  →  PowerShell rename  →  Verify  →  Split  →  Benchmark
-   ✕ broken              ⏵ python          ⏵ shell            ⏵ caught 1 bug   ⏵ 27M / 6M     ★ XGBoost wins
-```
+## Tools and deliverables
 
-| Stage | What happens | Volume |
-|---|---|---|
-| 1. EA API | UK Environment Agency endpoint deprecated Dec 2025 | — |
-| 2. Colab ingest | 364 monthly CSVs auto-downloaded via beta endpoint | 26 years × 14 regions |
-| 3. PowerShell rename | Standardise filenames by `area__year.csv` | 364 files |
-| 4. Verify | Custom script catches year-mismatch in Thames data | 1 silent bug prevented |
-| 5. Split | Chronological train (2000–2017) / test (2018–2025) | ~27M train / ~6M test |
-| 6. Benchmark | All four models trained with identical preprocessing | 20 model × target pairs |
+Python, Pandas and NumPy support data preparation. The report describes scikit-learn and XGBoost for modelling and evaluation, IBM SPSS Modeler in the benchmark workflow, Matplotlib for plots, and Power BI for the interactive results dashboard.
 
-### Why chronological split, not random?
+## Limitations and future work
 
-A random 70/30 split is the ML-tutorial default but it's **wrong** for time-series forecasting. Random splitting allows training on future observations and testing on past ones — a form of data leakage that inflates accuracy in a way that doesn't generalise. The 2018 cutoff respects the arrow of time.
+The inputs exclude site and area context, rainfall, river flow, land use and discharge. Future work could add these variables, tune models per target and use further time-preserving evaluation. These are recommendations, not completed improvements.
 
----
+The models estimate a target using other measurements and calendar features. A chronological holdout tests later observations; it does not establish forecasting from past-only inputs. Target sample sizes differ. Model-specific tuning was limited, and the results should not be generalised beyond the tested setting.
 
-## Models compared
+## Repository contents and reproducibility
 
-| Model | Family | Why included |
-|---|---|---|
-| **Ridge regression** | Linear · L2-regularised | A transparent floor that non-linear models must justifiably beat. |
-| **Random Forest** | Bagged decision trees | Captures non-linearity without explicit feature engineering. |
-| **Multi-Layer Perceptron** | Feedforward NN | Tests whether neural representations beat trees on tabular data here. |
-| **XGBoost** | Gradient-boosted trees | Industry standard for tabular regression. |
+This checkout contains the project presentation in `docs/`, this README, `requirements.txt` and the licence. It does not currently contain the submitted notebooks, model execution files, raw data or Power BI file. No end-to-end reproduction command or runtime is claimed here. The submitted report is the source for the workflow and Table 1 results above.
 
-All four received **identical preprocessing** — same lag features, same imputation, same standardisation. Architectural performance is the variable; data prep is not.
+## Source of corrections
 
----
-
-## Repository structure
-
-```
-.
-├── README.md                          ← you are here
-├── LICENSE                            ← MIT
-├── .gitignore                         ← Python ignores
-├── requirements.txt                   ← reproducibility
-├── notebooks/
-│   ├── 01_ingest_ea_beta.ipynb        ← Colab download script
-│   ├── 02_clean_and_verify.ipynb      ← year-mismatch check
-│   ├── 03_feature_engineering.ipynb   ← lag features, standardisation
-│   ├── 04_train_benchmark.ipynb       ← Ridge · RF · MLP · XGBoost
-│   └── 05_evaluate_visualize.ipynb    ← R², RMSE, MAE per target
-├── scripts/
-│   ├── rename_csvs.ps1                ← PowerShell batch rename
-│   └── verify_dates.py                ← chronological integrity check
-├── dashboards/
-│   └── WQ_ML_Benchmark_Dashboard.pbix ← Power BI artefact
-├── docs/
-│   ├── dissertation.pdf               ← full submitted document
-│   └── viva_slides.pptx               ← defence presentation
-└── data/
-    └── README.md                      ← how to obtain EA data (not redistributed)
-```
-
-> **Data licensing note.** UK Environment Agency Water Quality data is published under the Open Government Licence v3.0. The raw CSVs (~3.2 GB) are not redistributed in this repo to keep clone times fast; `notebooks/01_ingest_ea_beta.ipynb` reconstructs the full dataset from source.
-
----
-
-## Reproduce the result
-
-### Prerequisites
-
-- Python 3.10 or higher
-- ~5 GB free disk space (for the downloaded EA CSVs)
-- A Google account for Colab (or run locally with a Jupyter server)
-
-### Setup
-
-```bash
-# 1. Clone
-git clone https://github.com/nawafbalmutairi/ml-water-quality-benchmark.git
-cd ml-water-quality-benchmark
-
-# 2. Create environment
-python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
-
-# 3. Install dependencies
-pip install -r requirements.txt
-```
-
-### Run the pipeline
-
-Either run the notebooks **in order** (01 → 05), or use the scripts directly:
-
-```bash
-# Download all 364 CSVs (~25 minutes; respects EA's rate limits)
-python -m scripts.download_ea_data --years 2000-2025
-
-# Batch rename (Windows PowerShell)
-pwsh scripts/rename_csvs.ps1
-
-# Verify data integrity (catches the Thames year-mismatch bug)
-python scripts/verify_dates.py
-
-# Train all four models on all five targets
-python -m scripts.benchmark --models ridge,rf,mlp,xgboost --targets all
-
-# Evaluate
-python -m scripts.evaluate --output results/
-```
-
-Expected runtime end-to-end: **~45 minutes** on an 8-core consumer laptop.
-
----
-
-## Tech stack
-
-**Language:** Python 3.10
-**ML / data:** XGBoost · scikit-learn · PyTorch · pandas · NumPy
-**Visualisation:** matplotlib · seaborn · Power BI Desktop
-**Engineering:** Google Colab · PowerShell · Git
-**Methodology:** Chronological train/test split · R² / RMSE / MAE · five-parameter benchmark
-
----
-
-## What I'd do differently
-
-Three honest limitations and what would address them:
-
-1. **Feature scope** — only autocorrelative lag features are used. BOD is driven by rainfall, treatment-plant overflows, and agricultural runoff calendars — none of which are in the feature set. Adding Met Office rainfall data would probably move BOD's R² from −0.27 to something useful.
-2. **Single chronological split** — one cutoff at 2018 was used. Rolling-origin cross-validation would estimate the stability of these rankings across multiple historical cutoffs.
-3. **Default hyperparameters** — Bayesian optimisation or randomised search per model would establish a tighter ceiling. The current numbers represent a *fair* comparison, not necessarily an *optimal* one.
-
----
-
-## Citation
-
-If you reference this work:
-
-```bibtex
-@thesis{almutairi2026water,
-  title  = {Comparing Machine Learning Models for Water Quality Prediction},
-  author = {Almutairi, Nawaf},
-  school = {Northumbria University},
-  year   = {2026},
-  type   = {BSc Dissertation},
-  url    = {https://nawafbalmutairi.github.io/ml-benchmarking/}
-}
-```
-
----
-
-## Author
-
-**Nawaf Almutairi** — BSc Computer Science, Northumbria University · Class of 2026
-
-[Portfolio](https://nawafbalmutairi.github.io) · [LinkedIn](https://linkedin.com/in/nawaf-almutairi-907766290/) · [Email](mailto:NawafBAlmutairi@outlook.sa)
-
-Supervised by Dr. Maria Salama.
-
----
-
-## License
-
-[MIT](LICENSE) — see file for full text.
+Reviewed against `AI Water Quality Prediction Project - Submission Folder/01_Report/AI WATER QUALITY.docx`, especially sections 6–8 and Table 1. Nawaf clarified that the Thames naming error arose during manual renaming and that he found it himself. The affected years were 2000 and 2001.
